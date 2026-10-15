@@ -43,13 +43,17 @@ export function CreateTicketPage() {
     setSelectedTracking(val);
     if (val !== "none") {
       const pkg = shipments.find((s) => s.trackingNumber === val);
+      const itemDesc = pkg?.packageDescription || pkg?.packageType || "Package";
+      const receiver = pkg?.receiverName || pkg?.recipientName || "";
+      const status = pkg?.status ? ` [Status: ${pkg.status}]` : "";
+
       if (!subject.trim() || subject.startsWith("Delivery Issue regarding")) {
-        setSubject(`Delivery Issue regarding ${val}`);
+        setSubject(`Delivery Issue: ${val} (${itemDesc})`);
       }
       if (!message.trim()) {
-        const dest = pkg?.recipientName ? ` (To: ${pkg.recipientName})` : "";
-        const status = pkg?.status ? ` [Current Status: ${pkg.status}]` : "";
-        setMessage(`Hello Support Team,\n\nI am contacting you regarding shipment ${val}${dest}${status}.\n\nIssue Details: `);
+        const itemInfo = itemDesc ? ` regarding package contents '${itemDesc}'` : "";
+        const destInfo = receiver ? ` addressed to ${receiver}` : "";
+        setMessage(`Hello Support Team,\n\nI am reporting an issue with shipment ${val}${itemInfo}${destInfo}${status}.\n\nIssue Details: `);
       }
     }
   };
@@ -175,17 +179,29 @@ export function CreateTicketPage() {
                       <span>General Inquiry / Account Support (No parcel)</span>
                     </span>
                   </SelectItem>
-                  {shipments.map((s) => (
-                    <SelectItem key={s.id || s.trackingNumber} value={s.trackingNumber}>
-                      <span className="flex items-center gap-2 text-xs">
-                        <Package className="h-4 w-4 text-primary shrink-0" />
-                        <span className="font-mono font-semibold">{s.trackingNumber}</span>
-                        <span className="text-muted-foreground truncate max-w-[280px]">
-                          {s.recipientName ? `→ ${s.recipientName}` : s.destinationHub || ""} ({s.status})
+                  {shipments.map((s) => {
+                    const item = s.packageDescription || s.packageType || "Package";
+                    const recipient = s.receiverName || s.recipientName || "";
+                    return (
+                      <SelectItem key={s.id || s.trackingNumber} value={s.trackingNumber}>
+                        <span className="flex items-center gap-2 text-xs py-0.5">
+                          <Package className="h-4 w-4 text-primary shrink-0" />
+                          <span className="font-mono font-semibold">{s.trackingNumber}</span>
+                          <span className="font-semibold text-foreground">
+                            • {item}
+                          </span>
+                          {recipient && (
+                            <span className="text-muted-foreground truncate max-w-[180px]">
+                              (To: {recipient})
+                            </span>
+                          )}
+                          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded font-mono">
+                            {s.status}
+                          </span>
                         </span>
-                      </span>
-                    </SelectItem>
-                  ))}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
