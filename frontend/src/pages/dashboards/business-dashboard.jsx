@@ -26,10 +26,8 @@ import {
 export default function BusinessDashboard() {
   const { user } = useAuth();
   const myShipments = useShipments();
-  const analytics = useBusinessAnalytics(user.id);
 
-  const isLoading =
-    myShipments.isLoading || analytics.isLoading ;
+  const isLoading = myShipments.isLoading;
 
   const allShipments = myShipments.data ?? [];
   const delivered = allShipments.filter((s) => s.status === "DELIVERED" || s.status === "delivered");
