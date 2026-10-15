@@ -445,8 +445,27 @@ public class RouteService {
                                 shipmentId
                         );
 
-        HubLocationDto currentHub;
+        Hub origin = findHubByCity(
+                shipment.getSenderCity()
+        );
 
+        Hub destination = findHubByCity(
+                shipment.getReceiverCity()
+        );
+
+        HubLocationDto originHub = HubLocationDto.builder()
+                .hubName(origin.getHubName())
+                .latitude(origin.getLatitude())
+                .longitude(origin.getLongitude())
+                .build();
+
+        HubLocationDto destinationHub = HubLocationDto.builder()
+                .hubName(destination.getHubName())
+                .latitude(destination.getLatitude())
+                .longitude(destination.getLongitude())
+                .build();
+
+        HubLocationDto currentHub;
         HubLocationDto nextHub = null;
 
         if (current != null) {
@@ -470,7 +489,7 @@ public class RouteService {
                         .build();
             }
 
-        } else {
+        } else if (!routes.isEmpty()) {
 
             ShipmentRoute last = routes.get(routes.size() - 1);
 
@@ -479,26 +498,10 @@ public class RouteService {
                     .latitude(last.getHub().getLatitude())
                     .longitude(last.getHub().getLongitude())
                     .build();
+        } else {
+            currentHub = originHub;
+            nextHub = destinationHub;
         }
-        Hub origin = findHubByCity(
-                shipment.getSenderCity()
-        );
-
-        Hub destination = findHubByCity(
-                shipment.getReceiverCity()
-        );
-
-        HubLocationDto originHub = HubLocationDto.builder()
-                .hubName(origin.getHubName())
-                .latitude(origin.getLatitude())
-                .longitude(origin.getLongitude())
-                .build();
-
-        HubLocationDto destinationHub = HubLocationDto.builder()
-                .hubName(destination.getHubName())
-                .latitude(destination.getLatitude())
-                .longitude(destination.getLongitude())
-                .build();
 
         return NavigationResponse.builder()
                 .shipmentId(shipmentId)
