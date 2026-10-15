@@ -488,6 +488,7 @@ export const ticketsApi = {
       customer: data.customer || "Customer",
       customerId: data.customerId ?? null,
       customerEmail: data.customerEmail || "",
+      shipmentTracking: data.shipmentTracking || null,
       status: "open",
       priority: data.priority || "standard",
       channel: data.channel || "portal",

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCreateTicket } from "@/lib/hooks";
+import { useCreateTicket, useMyShipments, useShipments } from "@/lib/hooks";
 import { mlApi } from "@/lib/api";
 import { useAuth } from "@/context/auth-context";
 import { PageHeader } from "@/components/shared/page-header";
@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LifeBuoy, ArrowLeft, Send, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
+import { LifeBuoy, ArrowLeft, Send, Sparkles, AlertCircle, CheckCircle2, Package } from "lucide-react";
 import { toast } from "sonner";
 
 export function CreateTicketPage() {
@@ -28,7 +28,31 @@ export function CreateTicketPage() {
   const [subject, setSubject] = useState("");
   const [priority, setPriority] = useState("standard");
   const [message, setMessage] = useState("");
+  const [selectedTracking, setSelectedTracking] = useState("none");
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch available shipments for user
+  const isCustomer = user?.role === "customer";
+  const { data: myShipments } = useMyShipments(isCustomer ? user?.id : null);
+  const { data: allShipments } = useShipments();
+  const rawShipments = isCustomer ? myShipments : (user?.role === "business_client" ? allShipments : (myShipments || allShipments));
+  const shipments = Array.isArray(rawShipments) ? rawShipments : [];
+
+  // Parcel selection helper
+  const handleParcelSelect = (val) => {
+    setSelectedTracking(val);
+    if (val !== "none") {
+      const pkg = shipments.find((s) => s.trackingNumber === val);
+      if (!subject.trim() || subject.startsWith("Delivery Issue regarding")) {
+        setSubject(`Delivery Issue regarding ${val}`);
+      }
+      if (!message.trim()) {
+        const dest = pkg?.recipientName ? ` (To: ${pkg.recipientName})` : "";
+        const status = pkg?.status ? ` [Current Status: ${pkg.status}]` : "";
+        setMessage(`Hello Support Team,\n\nI am contacting you regarding shipment ${val}${dest}${status}.\n\nIssue Details: `);
+      }
+    }
+  };
 
   // ML State
   const [mlAnalysis, setMlAnalysis] = useState(null);
@@ -89,6 +113,7 @@ export function CreateTicketPage() {
         subject: subject.trim(),
         priority,
         message: message.trim(),
+        shipmentTracking: selectedTracking !== "none" ? selectedTracking : null,
         customer: user?.name || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Customer",
         customerId: user?.id,
         customerEmail: user?.email,
@@ -126,11 +151,45 @@ export function CreateTicketPage() {
         <CardHeader>
           <CardTitle>Ticket Details</CardTitle>
           <CardDescription>
-            Provide details about your inquiry or shipment issue
+            Provide details about your inquiry or link a specific shipment
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Related Parcel / Shipment Dropdown */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="parcel-select">Related Parcel / Shipment (Optional)</Label>
+                <span className="text-[11px] text-muted-foreground">
+                  Select a parcel or choose General Inquiry
+                </span>
+              </div>
+              <Select value={selectedTracking} onValueChange={handleParcelSelect}>
+                <SelectTrigger id="parcel-select" className="w-full">
+                  <SelectValue placeholder="General Inquiry (No parcel selected)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    <span className="flex items-center gap-2">
+                      <LifeBuoy className="h-4 w-4 text-muted-foreground" />
+                      <span>General Inquiry / Account Support (No parcel)</span>
+                    </span>
+                  </SelectItem>
+                  {shipments.map((s) => (
+                    <SelectItem key={s.id || s.trackingNumber} value={s.trackingNumber}>
+                      <span className="flex items-center gap-2 text-xs">
+                        <Package className="h-4 w-4 text-primary shrink-0" />
+                        <span className="font-mono font-semibold">{s.trackingNumber}</span>
+                        <span className="text-muted-foreground truncate max-w-[280px]">
+                          {s.recipientName ? `→ ${s.recipientName}` : s.destinationHub || ""} ({s.status})
+                        </span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="subject">Subject *</Label>
               <Input

@@ -176,6 +176,11 @@ const visible = isCustomer
                         <p className="truncate text-sm font-semibold">
                           {t.subject}
                         </p>
+                        {t.shipmentTracking && (
+                          <Badge variant="secondary" className="font-mono text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
+                            {t.shipmentTracking}
+                          </Badge>
+                        )}
                         {t.priority !== "standard" && (
                           <Badge
                             variant="outline"

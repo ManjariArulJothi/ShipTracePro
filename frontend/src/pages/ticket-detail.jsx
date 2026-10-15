@@ -32,6 +32,8 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Package,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -156,9 +158,20 @@ export function TicketDetailPage() {
                 {statusMeta[ticket.status].label}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {ticket.reference} · opened {timeAgo(ticket.createdAt)}
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span>{ticket.reference} · opened {timeAgo(ticket.createdAt)}</span>
+              {ticket.shipmentTracking && (
+                <Link
+                  to={`/app/track`}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold hover:bg-primary/20 transition"
+                  title="Track this parcel"
+                >
+                  <Package className="h-3.5 w-3.5" />
+                  <span>Parcel: {ticket.shipmentTracking}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
           </div>
         </div>
         {isStaff && (
@@ -281,6 +294,19 @@ export function TicketDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <InfoRow label="Customer" value={ticket.customer} />
+              {ticket.shipmentTracking && (
+                <InfoRow
+                  label="Related Parcel"
+                  value={
+                    <Link
+                      to="/app/track"
+                      className="font-mono text-xs font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+                    >
+                      {ticket.shipmentTracking}
+                    </Link>
+                  }
+                />
+              )}
               <InfoRow
                 label="Channel"
                 value={<span className="capitalize">{ticket.channel}</span>}
