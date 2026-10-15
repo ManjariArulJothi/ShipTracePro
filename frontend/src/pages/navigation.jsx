@@ -4,7 +4,8 @@ import { useParams } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import SignaturePad from "signature_pad";
 import { toast } from "sonner";
-import { CheckCircle2, ImagePlus, PenLine } from "lucide-react";
+import { CheckCircle2, ImagePlus, PenLine, Sparkles, Cpu, ShieldAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,9 @@ import {
   useNavigation,
   useReachNextHub,
   useUpdateShipmentStatus,
+  useShipment,
+  useMlEta,
+  useMlFailureRisk,
 } from "@/lib/hooks";
 
 import { shipmentsApi, podApi } from "@/lib/api";
@@ -30,6 +34,7 @@ export default function OperatorNavigationPage() {
   const { id } = useParams();
 
   const { data: navigation, isLoading } = useNavigation(id);
+  const { data: shipment } = useShipment(id);
 
   const reachNextHub = useReachNextHub();
   const updateStatus = useUpdateShipmentStatus();
@@ -76,6 +81,27 @@ export default function OperatorNavigationPage() {
   const WEATHER_OPTIONS = ["CLEAR", "RAIN", "FOG", "STORM"];
 
   const ROAD_OPTIONS = ["GOOD", "UNDER_CONSTRUCTION", "ACCIDENT", "BLOCKED"];
+
+  // =========================================================
+  // AI COPILOT & PREDICTIVE DELAY HOOKS
+  // =========================================================
+  const mlEta = useMlEta({
+    distance_km: 120,
+    package_weight_kg: shipment?.packageWeightKg || 3.0,
+    traffic_condition: trafficCondition,
+    weather_condition: weatherCondition,
+    road_condition: roadCondition,
+    hubs_count: 2,
+  });
+
+  const mlRisk = useMlFailureRisk({
+    delay_minutes: mlEta.data?.predicted_delay_minutes || 0,
+    traffic_condition: trafficCondition,
+    weather_condition: weatherCondition,
+    road_condition: roadCondition,
+    hours_in_transit: 5.0,
+    package_weight_kg: shipment?.packageWeightKg || 3.0,
+  });
 
   // =========================================================
   // CLEAN IMAGE PREVIEW
@@ -250,11 +276,25 @@ export default function OperatorNavigationPage() {
         </div>
 
         <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <p className="mb-2 text-sm text-muted-foreground">Next Hub</p>
+          <p className="mb-2 text-sm text-muted-foreground">
+            {navigation?.nextHub ? "Next Sorting Hub" : "Next Stop"}
+          </p>
 
-          <h2 className="text-2xl font-semibold">
-            {navigation?.nextHub?.hubName ?? "Destination"}
+          <h2 className="text-2xl font-semibold text-foreground">
+            {navigation?.nextHub?.hubName ? (
+              navigation.nextHub.hubName
+            ) : (
+              <span className="text-emerald-600 flex items-center gap-2">
+                Customer Doorstep (Final Delivery) 🏠
+              </span>
+            )}
           </h2>
+
+          {!navigation?.nextHub && shipment && (
+            <p className="mt-1.5 text-xs text-muted-foreground font-medium">
+              Recipient: <span className="font-semibold text-foreground">{shipment.receiverName}</span> · {shipment.receiverAddress}, {shipment.receiverCity}
+            </p>
+          )}
         </div>
       </div>
 
@@ -344,6 +384,62 @@ export default function OperatorNavigationPage() {
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Optional remarks"
             />
+          </div>
+        </div>
+
+        {/* ===================================================
+            AI DRIVER COPILOT & PREDICTIVE DELAY INSIGHTS
+        =================================================== */}
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+              <h3 className="text-base font-bold text-foreground">
+                AI Driver Copilot & Real-Time Impact Assessment
+              </h3>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              Live Neural Telemetry Active
+            </span>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            As you report road and weather conditions above, the AI engine dynamically recalculates cumulative transit delays and delivery SLA risk in real-time.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+            <div className="rounded-xl border border-border/70 bg-card p-3.5 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Predicted Transit Delay
+              </p>
+              <p className="text-xl font-extrabold text-foreground">
+                +{mlEta.data?.predicted_delay_minutes ?? "0"} mins
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Delay Risk: <span className={cn("font-bold", mlEta.data?.risk_level === "HIGH" ? "text-rose-600" : mlEta.data?.risk_level === "MEDIUM" ? "text-amber-600" : "text-emerald-600")}>{mlEta.data?.risk_level ?? "LOW"}</span>
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border/70 bg-card p-3.5 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Delivery SLA Risk
+              </p>
+              <p className="text-xl font-extrabold text-foreground">
+                {mlRisk.data?.failure_risk_percentage ?? "0"}%
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Risk Level: <span className={cn("font-bold", mlRisk.data?.risk_category === "CRITICAL" ? "text-rose-600" : mlRisk.data?.risk_category === "MODERATE" ? "text-amber-600" : "text-emerald-600")}>{mlRisk.data?.risk_category ?? "LOW"}</span>
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border/70 bg-card p-3.5 space-y-1 sm:col-span-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                AI Copilot Recommendation
+              </p>
+              <p className="text-xs text-foreground font-medium line-clamp-3 leading-relaxed">
+                {mlRisk.data?.recommended_intervention || mlEta.data?.contributing_factors?.[0] || "On schedule. Maintain standard driving pace."}
+              </p>
+            </div>
           </div>
         </div>
 

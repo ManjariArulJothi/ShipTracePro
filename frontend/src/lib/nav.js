@@ -88,6 +88,11 @@ export const NAV_BY_ROLE = {
           to: "/app/delivery-reports",
           icon: FileText,
         },
+        {
+          label: "Route Optimizer",
+          to: "/app/routes",
+          icon: Route,
+        },
       ],
     },
     {
@@ -264,7 +269,7 @@ export const PAGE_ACCESS = {
     "support_agent",
   ],
   "/app/eta-prediction": ["admin"],
-  "/app/routes": ["admin", "business_client", "customer"],
+  "/app/routes": ["admin", "business_client", "customer", "logistics_operator"],
   "/app/pod": ["admin", "logistics_operator", "business_client", "customer"],
   "/app/reports": ["admin"],
   "/app/delivery-reports": [
