@@ -293,60 +293,161 @@ export const notificationsApi = {
 // --- Tickets Storage & API ---
 const TICKETS_KEY = "shiptrack.tickets";
 
+const TICKETS_VERSION_KEY = "shiptrack.tickets.v2";
+
 const INITIAL_TICKETS = [
   {
     id: "tkt-1",
     reference: "TKT-4821",
-    subject: "Where is my package STP-2H7M-4410?",
-    customer: "Sam Rivera",
-    customerId: "u-customer",
-    customerEmail: "sam@example.com",
+    subject: "ETA Window for MacBook Pro (TRK-88A1901B)",
+    customer: "Manju Arul",
+    customerId: 3,
+    customerEmail: "manju@gmail.com",
+    shipmentTracking: "TRK-88A1901B",
     status: "in_progress",
-    priority: "standard",
+    priority: "high",
     channel: "chat",
-    assignee: "Support Team",
-    createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 3600000).toISOString(),
+    assignee: "HEMA PRIYA",
+    assigneeId: 5,
+    createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 30 * 60000).toISOString(),
     messages: [
       {
         id: "m1",
-        author: "Sam Rivera",
-        body: "Hi, my package was supposed to arrive today. Can you confirm the status?",
-        timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
+        author: "Manju Arul",
+        body: "Hi support team, my shipment TRK-88A1901B shows Out for Delivery. What is the approximate ETA window?",
+        timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
       },
       {
         id: "m2",
-        author: "Support Team",
-        body: "Hi Sam! Your package is currently out for delivery and should arrive by end of day.",
-        timestamp: new Date(Date.now() - 4 * 3600000).toISOString(),
+        author: "HEMA PRIYA",
+        body: "Hello Manju! Support Agent Hema here. Driver Ragu Nanthan is on T. Nagar Main Road and is estimated to reach within 45 minutes.",
+        timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
       },
     ],
   },
   {
     id: "tkt-2",
     reference: "TKT-4822",
-    subject: "Delay on ocean freight STP-5C2P-7733",
-    customer: "Northwind Trading Co.",
-    customerId: "u-business",
-    customerEmail: "northwind@example.com",
+    subject: "Reschedule Failed Delivery on TRK-55F8102C",
+    customer: "Manju Arul",
+    customerId: 3,
+    customerEmail: "manju@gmail.com",
+    shipmentTracking: "TRK-55F8102C",
     status: "open",
     priority: "express",
-    channel: "email",
+    channel: "portal",
     assignee: "Support Team",
-    createdAt: new Date(Date.now() - 9 * 3600000).toISOString(),
-    updatedAt: new Date(Date.now() - 9 * 3600000).toISOString(),
+    createdAt: new Date(Date.now() - 3 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 3600000).toISOString(),
     messages: [
       {
         id: "m1",
-        author: "Priya Sharma",
-        body: "Our container was flagged as delayed. What is the revised ETA?",
-        timestamp: new Date(Date.now() - 9 * 3600000).toISOString(),
+        author: "Manju Arul",
+        body: "My package TRK-55F8102C was marked as Failed Delivery. Please do not return to sender! Can you reattempt tomorrow morning after 10 AM?",
+        timestamp: new Date(Date.now() - 3 * 3600000).toISOString(),
+      },
+    ],
+  },
+  {
+    id: "tkt-3",
+    reference: "TKT-4823",
+    subject: "Security gate code clearance for medical kit (TRK-61A1187P)",
+    customer: "Priya Bala",
+    customerId: 4,
+    customerEmail: "testcustomer@test.com",
+    shipmentTracking: "TRK-61A1187P",
+    status: "in_progress",
+    priority: "express",
+    channel: "chat",
+    assignee: "HEMA PRIYA",
+    assigneeId: 5,
+    createdAt: new Date(Date.now() - 1 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 15 * 60000).toISOString(),
+    messages: [
+      {
+        id: "m1",
+        author: "Priya Bala",
+        body: "Security blocked the driver at Green Meadows gate. I have given visitor code 4491 at security desk. Please tell driver to reattempt.",
+        timestamp: new Date(Date.now() - 1 * 3600000).toISOString(),
+      },
+      {
+        id: "m2",
+        author: "HEMA PRIYA",
+        body: "Understood Priya! I have dispatched the gate code 4491 to driver Ragu Nanthan on Tata Ace VEH-001. Reattempt in progress.",
+        timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
+      },
+    ],
+  },
+  {
+    id: "tkt-4",
+    reference: "TKT-4824",
+    subject: "Request digital copy of delivery signature for TRK-22E9043M",
+    customer: "Priya Bala",
+    customerId: 4,
+    customerEmail: "testcustomer@test.com",
+    shipmentTracking: "TRK-22E9043M",
+    status: "resolved",
+    priority: "standard",
+    channel: "email",
+    assignee: "HEMA PRIYA",
+    assigneeId: 5,
+    createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+    messages: [
+      {
+        id: "m1",
+        author: "Priya Bala",
+        body: "Chair was delivered today. Need the verified POD copy for office expense reimbursement.",
+        timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
+      },
+      {
+        id: "m2",
+        author: "HEMA PRIYA",
+        body: "Hi Priya! Your digital POD has been verified and is available directly under Shipment TRK-22E9043M details.",
+        timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
+      },
+    ],
+  },
+  {
+    id: "tkt-5",
+    reference: "TKT-4825",
+    subject: "Address Correction on B2B Freight TRK-7DF77E03",
+    customer: "Tharun Kruthik",
+    customerId: 2,
+    customerEmail: "tharun@gmail.com",
+    shipmentTracking: "TRK-7DF77E03",
+    status: "closed",
+    priority: "standard",
+    channel: "portal",
+    assignee: "HEMA PRIYA",
+    assigneeId: 5,
+    createdAt: new Date(Date.now() - 24 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 18 * 3600000).toISOString(),
+    messages: [
+      {
+        id: "m1",
+        author: "Tharun Kruthik",
+        body: "Please update delivery dock location to Bay 3B.",
+        timestamp: new Date(Date.now() - 24 * 3600000).toISOString(),
+      },
+      {
+        id: "m2",
+        author: "HEMA PRIYA",
+        body: "Delivery instructions updated to Bay 3B. Marking as closed.",
+        timestamp: new Date(Date.now() - 18 * 3600000).toISOString(),
       },
     ],
   },
 ];
 
 function getStoredTickets() {
+  const version = localStorage.getItem(TICKETS_VERSION_KEY);
+  if (!version) {
+    localStorage.setItem(TICKETS_VERSION_KEY, "v2");
+    localStorage.setItem(TICKETS_KEY, JSON.stringify(INITIAL_TICKETS));
+    return INITIAL_TICKETS;
+  }
   const raw = localStorage.getItem(TICKETS_KEY);
   if (!raw) {
     localStorage.setItem(TICKETS_KEY, JSON.stringify(INITIAL_TICKETS));

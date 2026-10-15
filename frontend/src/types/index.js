@@ -70,6 +70,11 @@ export const STATUS_META = {
     bg: "bg-success/10 text-success",
     dot: "bg-success",
   },
+  ARRIVED_AT_HUB: {
+    label: "Arrived at Hub",
+    bg: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    dot: "bg-blue-500",
+  },
   FAILED_DELIVERY: {
     label: "Failed Delivery",
     bg: "bg-destructive/10 text-destructive",
@@ -79,5 +84,10 @@ export const STATUS_META = {
     label: "Cancelled",
     bg: "bg-muted text-muted-foreground",
     dot: "bg-slate-400",
+  },
+  RETURNED: {
+    label: "Returned to Origin",
+    bg: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+    dot: "bg-amber-500",
   },
 };

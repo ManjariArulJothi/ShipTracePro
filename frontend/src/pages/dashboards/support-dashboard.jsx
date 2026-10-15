@@ -47,13 +47,15 @@ export default function SupportDashboard() {
   const shipments = useShipments();
   const isLoading = tickets.isLoading;
 
-  const open = tickets.data?.filter((t) => t.status === "open") ?? [];
-  const resolved = tickets.data?.filter((t) => t.status === "resolved") ?? [];
+  const open = tickets.data?.filter((t) => t.status?.toLowerCase() === "open") ?? [];
+  const resolved = tickets.data?.filter((t) => t.status?.toLowerCase() === "resolved") ?? [];
   const myTickets =
     tickets.data?.filter(
       (t) =>
-        t.assignee === (user.name ?? user.firstName) ||
-        t.assigneeId === user.id,
+        t.assigneeId === user?.id ||
+        t.assignee?.toLowerCase() === (user?.name || "").toLowerCase() ||
+        t.assignee?.toLowerCase() === (user?.firstName || "").toLowerCase() ||
+        (t.assignee && user?.name && t.assignee.toLowerCase().includes(user.name.toLowerCase()))
     ) ?? [];
 
   if (isLoading) {
