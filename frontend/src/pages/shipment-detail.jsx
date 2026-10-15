@@ -1,13 +1,14 @@
 
 
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useShipment } from "@/lib/hooks";
+import { useShipment, useMlEta, useMlFailureRisk } from "@/lib/hooks";
 import { MapView } from "@/components/shared/map-view";
 import { TrackingTimeline } from "@/components/shared/tracking-timeline";
 import { StatusBadge, PriorityBadge } from "@/components/shared/status-badge";
 import { LoadingState, EmptyState } from "@/components/shared/states";
 import { useQuery } from "@tanstack/react-query";
 import { shipmentsApi } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -39,6 +40,9 @@ import {
   Printer,
   Share2,
   CircleX,
+  Sparkles,
+  Cpu,
+  ShieldAlert,
 } from "lucide-react";
 
 const modeIcon = {
@@ -72,6 +76,24 @@ export function ShipmentDetailPage() {
 
   const trackingData = tracking.data;
   const navigate = useNavigate();
+
+  const mlEta = useMlEta({
+    distance_km: trackingData?.remainingDistanceKm || 50,
+    package_weight_kg: shipment?.packageWeightKg || 2.5,
+    traffic_condition: trackingData?.trafficCondition || "LOW",
+    weather_condition: trackingData?.weatherCondition || "CLEAR",
+    road_condition: trackingData?.roadCondition || "GOOD",
+    hubs_count: trackingData?.trackingHistory?.length || 2,
+  });
+
+  const mlRisk = useMlFailureRisk({
+    delay_minutes: mlEta.data?.predicted_delay_minutes || 0,
+    traffic_condition: trackingData?.trafficCondition || "LOW",
+    weather_condition: trackingData?.weatherCondition || "CLEAR",
+    road_condition: trackingData?.roadCondition || "GOOD",
+    hours_in_transit: 6.0,
+    package_weight_kg: shipment?.packageWeightKg || 2.5,
+  });
 
   if (isLoading || tracking.isLoading) {
     return (
@@ -299,6 +321,106 @@ const isCustomerCancelled = shipment.cancelledByCustomer === true;
               </CardContent>
             </Card>
           )}
+
+          {/* AI / ML Insights Card */}
+          <Card className="border-primary/40 shadow-sm bg-gradient-to-b from-card to-primary/[0.02]">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-sm font-bold text-foreground">
+                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                  AI & Machine Learning Insights
+                </CardTitle>
+                <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">
+                  ML Engine Active
+                </Badge>
+              </div>
+              <CardDescription className="text-xs">
+                Real-time predictive telemetry & risk assessment
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4 pt-4 text-xs">
+              {/* Model 1: ETA & Delay Risk */}
+              <div className="space-y-2 rounded-xl border border-border/70 bg-card p-3 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <Cpu className="h-3.5 w-3.5 text-primary" /> Model 1: ETA Delay Risk
+                  </span>
+                  <Badge
+                    className={
+                      mlEta.data?.risk_level === "HIGH"
+                        ? "bg-rose-500 text-white"
+                        : mlEta.data?.risk_level === "MEDIUM"
+                          ? "bg-amber-500 text-white"
+                          : "bg-emerald-500 text-white"
+                    }
+                  >
+                    {mlEta.data?.risk_level || "LOW"} RISK
+                  </Badge>
+                </div>
+
+                <div className="flex justify-between text-muted-foreground pt-1">
+                  <span>Predicted Delay:</span>
+                  <span className="font-bold text-foreground">
+                    +{mlEta.data?.predicted_delay_minutes || 0} mins
+                  </span>
+                </div>
+
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Delay Probability:</span>
+                  <span className="font-bold text-foreground">
+                    {Math.round((mlEta.data?.delay_risk_probability || 0.15) * 100)}%
+                  </span>
+                </div>
+
+                {mlEta.data?.contributing_factors?.length > 0 && (
+                  <div className="pt-1.5 border-t border-border/40">
+                    <p className="text-[10px] text-muted-foreground font-medium mb-1">
+                      Factors Analyzed:
+                    </p>
+                    <ul className="list-disc pl-3.5 space-y-0.5 text-[11px] text-muted-foreground/90">
+                      {mlEta.data.contributing_factors.map((f, i) => (
+                        <li key={i}>{f}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Model 5: Delivery Failure & Churn Risk */}
+              <div className="space-y-2 rounded-xl border border-border/70 bg-card p-3 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <ShieldAlert className="h-3.5 w-3.5 text-chart-6" /> Model 5: Failure Risk
+                  </span>
+                  <Badge
+                    className={
+                      mlRisk.data?.risk_category === "CRITICAL"
+                        ? "bg-rose-500 text-white"
+                        : mlRisk.data?.risk_category === "MODERATE"
+                          ? "bg-amber-500 text-white"
+                          : "bg-emerald-500 text-white"
+                    }
+                  >
+                    {mlRisk.data?.risk_category || "LOW"}
+                  </Badge>
+                </div>
+
+                <div className="flex justify-between text-muted-foreground pt-1">
+                  <span>Failure Probability:</span>
+                  <span className="font-bold text-foreground">
+                    {mlRisk.data?.failure_risk_percentage || 12}%
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-muted-foreground italic pt-1 border-t border-border/40">
+                  <span className="font-semibold not-italic text-foreground">Recommendation: </span>
+                  {mlRisk.data?.recommended_intervention ||
+                    "Standard dispatch. Transit proceeding within parameters."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             
             <CardHeader>

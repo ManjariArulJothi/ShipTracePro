@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   shipmentsApi,
-  
   notificationsApi,
   ticketsApi,
   teamApi,
-  
   analyticsApi,
+  mlApi,
 } from "./api";
 import { queryKeys } from "./query-client";
 import { useAuth } from "@/context/auth-context";
@@ -368,5 +367,42 @@ export function useReachNextHub() {
         queryKey: queryKeys.shipments,
       });
     },
+  });
+}
+
+// ==================== ML MODEL HOOKS ====================
+
+// 1. Dynamic ETA & Delay Prediction
+export function useMlEta(params, options = {}) {
+  return useQuery({
+    queryKey: ["ml-eta", params],
+    queryFn: () => mlApi.predictEta(params),
+    enabled: !!params?.distance_km,
+    staleTime: 60000,
+    ...options,
+  });
+}
+
+// 3. Support Ticket NLP Classification
+export function useClassifyTicket() {
+  return useMutation({
+    mutationFn: (payload) => mlApi.classifyTicket(payload),
+  });
+}
+
+// 4. Smart Route Optimization
+export function useOptimizeRoute() {
+  return useMutation({
+    mutationFn: (payload) => mlApi.optimizeRoute(payload),
+  });
+}
+
+// 5. Failure & Cancellation Risk Prediction
+export function useMlFailureRisk(params, options = {}) {
+  return useQuery({
+    queryKey: ["ml-failure-risk", params],
+    queryFn: () => mlApi.predictFailureRisk(params),
+    staleTime: 60000,
+    ...options,
   });
 }

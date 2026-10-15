@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateTicket } from "@/lib/hooks";
+import { mlApi } from "@/lib/api";
 import { useAuth } from "@/context/auth-context";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -15,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LifeBuoy, ArrowLeft, Send } from "lucide-react";
+import { LifeBuoy, ArrowLeft, Send, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function CreateTicketPage() {
@@ -27,6 +29,48 @@ export function CreateTicketPage() {
   const [priority, setPriority] = useState("standard");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // ML State
+  const [mlAnalysis, setMlAnalysis] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Trigger NLP classification on subject/message change (debounced)
+  useEffect(() => {
+    if (!subject.trim() && !message.trim()) {
+      setMlAnalysis(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsAnalyzing(true);
+        const result = await mlApi.classifyTicket({
+          subject: subject.trim(),
+          description: message.trim(),
+        });
+        setMlAnalysis(result);
+      } catch (err) {
+        console.warn("ML Classification unavailable:", err);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [subject, message]);
+
+  const applyMlPriority = () => {
+    if (!mlAnalysis) return;
+    const prio = mlAnalysis.suggested_priority;
+    if (prio === "URGENT") {
+      setPriority("critical");
+    } else if (prio === "HIGH") {
+      setPriority("express");
+    } else {
+      setPriority("standard");
+    }
+    toast.success(`ML Priority '${prio}' applied!`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,6 +143,74 @@ export function CreateTicketPage() {
             </div>
 
             <div className="space-y-1.5">
+              <Label htmlFor="message">Message / Description *</Label>
+              <Textarea
+                id="message"
+                placeholder="Please explain the issue with any relevant tracking number or detail..."
+                rows={4}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* ML NLP Real-time Insights Card */}
+            {(mlAnalysis || isAnalyzing) && (
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-2.5 transition-all">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                    <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                    🤖 AI / NLP Ticket Intelligence
+                  </div>
+                  {isAnalyzing && (
+                    <span className="text-[11px] text-muted-foreground animate-pulse">
+                      Analyzing intent...
+                    </span>
+                  )}
+                </div>
+
+                {mlAnalysis && !isAnalyzing && (
+                  <div className="space-y-2 text-xs">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-muted-foreground">Detected Intent:</span>
+                      <Badge variant="outline" className="font-semibold bg-background">
+                        {mlAnalysis.predicted_category?.replace(/_/g, " ")} ({Math.round(mlAnalysis.confidence * 100)}% match)
+                      </Badge>
+
+                      <span className="text-muted-foreground ml-2">Suggested Priority:</span>
+                      <Badge
+                        className={
+                          mlAnalysis.suggested_priority === "URGENT"
+                            ? "bg-rose-500 text-white"
+                            : mlAnalysis.suggested_priority === "HIGH"
+                              ? "bg-amber-500 text-white"
+                              : "bg-blue-500 text-white"
+                        }
+                      >
+                        {mlAnalysis.suggested_priority}
+                      </Badge>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={applyMlPriority}
+                        className="h-6 text-[11px] px-2 text-primary font-bold hover:bg-primary/10 ml-auto"
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Apply Priority
+                      </Button>
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground">
+                      Sentiment: <span className="font-medium">{mlAnalysis.detected_sentiment}</span> • Auto-Routing: <span className="font-medium text-foreground">{mlAnalysis.auto_assigned_department}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
               <Label htmlFor="priority">Priority</Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger id="priority">
@@ -110,18 +222,6 @@ export function CreateTicketPage() {
                   <SelectItem value="critical">Critical - Urgent delivery issue</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="message">Message / Description *</Label>
-              <Textarea
-                id="message"
-                placeholder="Please explain the issue with any relevant tracking number or detail..."
-                rows={5}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                required
-              />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">

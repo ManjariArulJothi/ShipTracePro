@@ -1,6 +1,7 @@
 com\shipment\delivery\service\DeliveryAssignmentService.class
 com\shipment\shipmentmanagement\dto\JourneyUpdateRequest.class
 com\shipment\analytics\dto\response\OverviewResponse$OverviewResponseBuilder.class
+com\shipment\ml\dto\MlDtos$Waypoint.class
 com\shipment\shipmentmanagement\dto\HubDropdownResponse.class
 com\shipment\analytics\dto\response\DeliveryReportResponse$DeliveryReportResponseBuilder.class
 com\shipment\auth\exception\GlobalExceptionHandler.class
@@ -12,13 +13,17 @@ com\shipment\notification\config\WebSocketConfig.class
 com\shipment\delivery\entity\DeliveryAssignment.class
 com\shipment\notification\dto\NotificationResponse$NotificationResponseBuilder.class
 com\shipment\auth\security\CustomUserDetailsService.class
+com\shipment\ml\dto\MlDtos$EtaRequest.class
+com\shipment\ml\dto\MlDtos$FailureRiskRequest$FailureRiskRequestBuilder.class
 com\shipment\auth\entity\PasswordResetToken.class
 com\shipment\shipmentmanagement\dto\BusinessShipmentAnalyticsDto.class
 com\shipment\deliveryreports\dto\response\TopRouteResponse.class
 com\shipment\pod\client\PodAuthClientImpl.class
+com\shipment\ml\dto\MlDtos$TicketClassifyResponse.class
 com\shipment\shipmentmanagement\repository\HubRepository.class
 com\shipment\auth\dto\response\OperatorResponse$OperatorResponseBuilder.class
 com\shipment\delivery\repository\RouteRepository.class
+com\shipment\ml\dto\MlDtos$EtaRequest$EtaRequestBuilder.class
 com\shipment\auth\dto\response\OperatorResponse.class
 com\shipment\auth\dto\request\ChangePasswordRequest.class
 com\shipment\pod\service\CloudinaryService.class
@@ -41,6 +46,7 @@ com\shipment\delivery\repository\DriverLocationRepository.class
 com\shipment\deliveryreports\dto\response\UserProfileResponse.class
 com\shipment\delivery\dto\RouteResponse.class
 com\shipment\pod\dto\ProofOfDeliveryResponse.class
+com\shipment\ml\service\MlService.class
 com\shipment\notification\controller\EmailController.class
 com\shipment\shipmentmanagement\dto\ShipmentAnalyticsDto.class
 com\shipment\deliveryreports\controller\DeliveryReportController.class
@@ -48,11 +54,13 @@ com\shipment\deliveryreports\dto\response\UserProfileResponse$UserProfileRespons
 com\shipment\shipmentmanagement\dto\CustomerCancellationRequest.class
 com\shipment\delivery\dto\ProgressResponse.class
 com\shipment\shipmentmanagement\dto\CustomerLookupResponse.class
+com\shipment\ml\dto\MlDtos$FailureRiskRequest.class
 com\shipment\analytics\dto\response\DashboardAnalyticsResponse$DashboardAnalyticsResponseBuilder.class
 com\shipment\auth\dto\response\UserProfileResponse.class
 com\shipment\auth\service\impl\EmailServiceImpl.class
 com\shipment\shipmentmanagement\entity\enums\ShipmentStatus.class
 com\shipment\auth\exception\InvalidCredentialsException.class
+com\shipment\ml\dto\MlDtos$Waypoint$WaypointBuilder.class
 com\shipment\shipmentmanagement\dto\ShipmentAnalyticsDataResponse.class
 com\shipment\auth\security\JwtAuthenticationFilter.class
 com\shipment\deliveryreports\dto\response\DeliveryVolumeTrendResponse.class
@@ -124,11 +132,13 @@ com\shipment\shipmentmanagement\dto\HubLocationDto$HubLocationDtoBuilder.class
 com\shipment\auth\dto\response\AdminUserResponse$AdminUserResponseBuilder.class
 com\shipment\auth\dto\response\ApiResponse$ApiResponseBuilder.class
 com\shipment\auth\exception\UserAlreadyExistsException.class
+com\shipment\ml\dto\MlDtos.class
 com\shipment\analytics\dto\response\ShipmentStatusResponse.class
 com\shipment\pod\service\ProofOfDeliveryService.class
 com\shipment\delivery\entity\DriverLocation$DriverLocationBuilder.class
 com\shipment\deliveryreports\dto\response\ShipmentAnalyticsDataResponse.class
 com\shipment\shipmentmanagement\repository\ShipmentRouteRepository.class
+com\shipment\ml\dto\MlDtos$EtaResponse$EtaResponseBuilder.class
 com\shipment\notification\dto\ShipmentResponse.class
 com\shipment\auth\dto\response\RefreshTokenResponse$RefreshTokenResponseBuilder.class
 com\shipment\deliveryreports\dto\response\DeliveryReportResponse$DeliveryReportResponseBuilder.class
@@ -139,6 +149,7 @@ com\shipment\shipmentmanagement\dto\EtaResponse$EtaResponseBuilder.class
 com\shipment\shipmentmanagement\config\ShipmentConstants.class
 com\shipment\shipmentmanagement\dto\TrackingHistoryDto.class
 com\shipment\analytics\dto\response\VolumeByMonthResponse.class
+com\shipment\ml\dto\MlDtos$RouteOptimizeResponse$RouteOptimizeResponseBuilder.class
 com\shipment\shipmentmanagement\service\RouteFinderService.class
 com\shipment\shipmentmanagement\util\ForecastCalculator.class
 com\shipment\notification\email\EmailTemplateService.class
@@ -152,6 +163,7 @@ com\shipment\auth\dto\response\LoginResponse$LoginResponseBuilder.class
 com\shipment\delivery\entity\TrackingEvent$TrackingEventBuilder.class
 com\shipment\analytics\dto\response\AverageDeliveryTimeResponse.class
 com\shipment\analytics\client\AnalyticsAuthClientImpl.class
+com\shipment\ml\dto\MlDtos$RouteOptimizeResponse.class
 com\shipment\analytics\dto\response\DeliveryReportResponse.class
 com\shipment\deliveryreports\dto\response\DeliveryVolumeTrendResponse$DeliveryVolumeTrendResponseBuilder.class
 com\shipment\delivery\entity\Route$RouteBuilder.class
@@ -165,6 +177,7 @@ com\shipment\auth\dto\request\ForgotPasswordRequest.class
 com\shipment\auth\dto\response\CustomerLookupResponse$CustomerLookupResponseBuilder.class
 com\shipment\delivery\repository\DeliveryAssignmentRepository.class
 com\shipment\analytics\dto\response\DeliveryActivity24hResponse.class
+com\shipment\ml\dto\MlDtos$RouteOptimizeRequest.class
 com\shipment\shipmentmanagement\service\JourneyUpdateServiceImpl.class
 com\shipment\auth\dto\response\CustomerLookupResponse.class
 com\shipment\delivery\dto\DeliveryAnalyticsDto$DeliveryAnalyticsDtoBuilder.class
@@ -174,7 +187,9 @@ com\shipment\shipmentmanagement\client\AuthClient.class
 com\shipment\notification\client\AuthServiceClient.class
 com\shipment\delivery\controller\DeliveryAssignmentController.class
 com\shipment\shipmentmanagement\service\EtaServiceImpl.class
+com\shipment\ml\dto\MlDtos$FailureRiskResponse.class
 com\shipment\analytics\dto\response\DeliveryVolumeTrendResponse.class
+com\shipment\ml\dto\MlDtos$RouteOptimizeRequest$RouteOptimizeRequestBuilder.class
 com\shipment\pod\entity\ProofOfDelivery$ProofOfDeliveryBuilder.class
 com\shipment\deliveryreports\dto\response\TopRouteResponse$TopRouteResponseBuilder.class
 com\shipment\shipmentmanagement\controller\RouteFinderController.class
@@ -185,6 +200,7 @@ com\shipment\auth\dto\request\VerifyEmailOtpRequest.class
 com\shipment\auth\entity\User.class
 com\shipment\delivery\repository\TrackingEventRepository.class
 com\shipment\shipmentmanagement\dto\HubResponse.class
+com\shipment\ml\controller\MlController.class
 com\shipment\auth\dto\request\VerifyPhoneOtpRequest.class
 com\shipment\deliveryreports\client\DeliveryReportsAuthClientImpl.class
 com\shipment\pod\client\AuthClient.class
@@ -194,6 +210,7 @@ com\shipment\analytics\dto\response\OverviewResponse.class
 com\shipment\auth\dto\response\ApiResponse.class
 com\shipment\auth\dto\request\ChangeRoleRequest.class
 com\shipment\auth\dto\request\SendLoginOtpRequest.class
+com\shipment\ml\dto\MlDtos$TicketClassifyRequest.class
 com\shipment\auth\service\OtpStore.class
 com\shipment\auth\service\UserService.class
 com\shipment\analytics\dto\response\TopRouteResponse$TopRouteResponseBuilder.class
@@ -227,6 +244,7 @@ com\shipment\shipmentmanagement\dto\TrackingResponse.class
 com\shipment\auth\repository\PasswordResetTokenRepository.class
 com\shipment\shipmentmanagement\util\ForecastCalculator$1.class
 com\shipment\notification\controller\NotificationController.class
+com\shipment\ml\dto\MlDtos$TicketClassifyResponse$TicketClassifyResponseBuilder.class
 com\shipment\shipmentmanagement\entity\Hub.class
 com\shipment\auth\enums\UserRole.class
 com\shipment\pod\controller\ProofOfDeliveryController.class
@@ -240,6 +258,7 @@ com\shipment\shipmentmanagement\dto\DeliveryForecastResponse$DeliveryForecastRes
 com\shipment\auth\util\OtpData.class
 com\shipment\analytics\dto\response\UserProfileResponse.class
 com\shipment\analytics\dto\response\ShipmentStatusResponse$ShipmentStatusResponseBuilder.class
+com\shipment\ml\dto\MlDtos$FailureRiskResponse$FailureRiskResponseBuilder.class
 com\shipment\delivery\controller\DashboardController.class
 com\shipment\analytics\dto\response\DeliveryActivity24hResponse$DeliveryActivity24hResponseBuilder.class
 com\shipment\delivery\controller\RouteController.class
@@ -250,6 +269,7 @@ com\shipment\auth\exception\InvalidOtpException.class
 com\shipment\delivery\dto\LocationUpdateRequest.class
 com\shipment\deliveryreports\client\ShipmentClient.class
 com\shipment\analytics\controller\AnalyticsController.class
+com\shipment\ml\dto\MlDtos$TicketClassifyRequest$TicketClassifyRequestBuilder.class
 com\shipment\shipmentmanagement\service\JourneyUpdateService.class
 com\shipment\notification\client\ShipmentServiceClient.class
 com\shipment\shipmentmanagement\dto\AcceptShipmentRequest.class
@@ -275,6 +295,7 @@ com\shipment\auth\dto\request\UserAnalyticsDto$UserAnalyticsDtoBuilder.class
 com\shipment\auth\dto\response\AuthResponse.class
 com\shipment\delivery\service\DashboardService.class
 com\shipment\analytics\dto\response\VolumeByMonthResponse$VolumeByMonthResponseBuilder.class
+com\shipment\ml\dto\MlDtos$EtaResponse.class
 com\shipment\auth\entity\RefreshToken.class
 com\shipment\delivery\websocket\NotificationPublisher.class
 com\shipment\shipmentmanagement\dto\CustomerShipmentAnalyticsDto.class

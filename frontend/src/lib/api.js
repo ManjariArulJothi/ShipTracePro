@@ -580,6 +580,29 @@ export const podApi = {
   },
 };
 
+export const mlApi = {
+  async health() {
+    const response = await api.get("/ml/health");
+    return response.data;
+  },
+  async predictEta(payload) {
+    const response = await api.post("/ml/predict-eta", payload);
+    return response.data;
+  },
+  async classifyTicket(payload) {
+    const response = await api.post("/ml/classify-ticket", payload);
+    return response.data;
+  },
+  async optimizeRoute(payload) {
+    const response = await api.post("/ml/optimize-route", payload);
+    return response.data;
+  },
+  async predictFailureRisk(payload) {
+    const response = await api.post("/ml/predict-failure-risk", payload);
+    return response.data;
+  },
+};
+
 
 
 

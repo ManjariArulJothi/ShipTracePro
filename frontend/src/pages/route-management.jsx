@@ -23,9 +23,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Route, MapPinned, Map, Navigation,ArrowDownUp } from "lucide-react";
-
-import { useHubs, useFindRoute } from "@/lib/hooks";
+import { Route, MapPinned, Map, Navigation, ArrowDownUp, Sparkles, Fuel, Zap, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useHubs, useFindRoute, useOptimizeRoute } from "@/lib/hooks";
 
 
 export function RouteManagementPage() {
@@ -45,6 +45,39 @@ export function RouteManagementPage() {
     request?.originHubId,
     request?.destinationHubId,
   );
+
+  const optimizeRoute = useOptimizeRoute();
+  const [mlOptimization, setMlOptimization] = useState(null);
+
+  const handleRunOptimization = async () => {
+    if (!route?.route || route.route.length < 2) return;
+    const origin = {
+      name: route.route[0].hubName,
+      lat: route.route[0].latitude,
+      lng: route.route[0].longitude,
+    };
+    const destination = {
+      name: route.route[route.route.length - 1].hubName,
+      lat: route.route[route.route.length - 1].latitude,
+      lng: route.route[route.route.length - 1].longitude,
+    };
+    const intermediates = route.route.slice(1, -1).map((h) => ({
+      name: h.hubName,
+      lat: h.latitude,
+      lng: h.longitude,
+    }));
+
+    try {
+      const result = await optimizeRoute.mutateAsync({
+        origin,
+        destination,
+        intermediate_stops: intermediates,
+      });
+      setMlOptimization(result);
+    } catch (err) {
+      console.warn("ML Route Optimization failed:", err);
+    }
+  };
 
 const selectedPoints =
   route?.route?.map((hub) => ({
@@ -226,6 +259,69 @@ const eta = route ? `${route.estimatedHours}h ${route.estimatedMinutes}m` : "-";
                       );
                     })}
                   </div>
+                </div>
+
+                {/* ML Route Optimization Section */}
+                <div className="mt-6 pt-5 border-t border-border/60 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <h4 className="text-sm font-bold flex items-center gap-1.5 text-foreground">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Model 4: AI & ML Route Optimization
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Solves Multi-Stop Traveling Salesperson heuristic for minimum fuel & transit time
+                      </p>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      variant="brand"
+                      onClick={handleRunOptimization}
+                      disabled={optimizeRoute.isPending}
+                      className="text-xs font-bold"
+                    >
+                      <Zap className="mr-1.5 h-3.5 w-3.5" />
+                      {optimizeRoute.isPending ? "Optimizing..." : "Run ML Optimizer"}
+                    </Button>
+                  </div>
+
+                  {mlOptimization && (
+                    <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3 animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-foreground">Optimization Results</span>
+                        <Badge className="bg-emerald-500 text-white font-bold">
+                          +{mlOptimization.optimization_gain_pct}% Efficiency Gain
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                        <div className="rounded-lg bg-card p-2.5 border border-border/70 text-center">
+                          <p className="text-[10px] text-muted-foreground">Original Distance</p>
+                          <p className="text-sm font-bold text-foreground">{mlOptimization.original_distance_km} km</p>
+                        </div>
+                        <div className="rounded-lg bg-card p-2.5 border border-border/70 text-center">
+                          <p className="text-[10px] text-muted-foreground">Optimized Distance</p>
+                          <p className="text-sm font-bold text-emerald-600">{mlOptimization.optimized_distance_km} km</p>
+                        </div>
+                        <div className="rounded-lg bg-card p-2.5 border border-border/70 text-center">
+                          <p className="text-[10px] text-muted-foreground">Fuel Saved</p>
+                          <p className="text-sm font-bold text-primary flex items-center justify-center gap-1">
+                            <Fuel className="h-3.5 w-3.5" /> {mlOptimization.fuel_saved_liters} L
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-card p-2.5 border border-border/70 text-center">
+                          <p className="text-[10px] text-muted-foreground">Time Saved</p>
+                          <p className="text-sm font-bold text-foreground">{mlOptimization.time_saved_minutes} mins</p>
+                        </div>
+                      </div>
+
+                      <div className="text-[11px] text-muted-foreground pt-1">
+                        <span className="font-semibold text-foreground">Recommended Stop Sequence: </span>
+                        {mlOptimization.optimized_waypoints?.map((wp) => wp.name).join(" ➔ ")}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

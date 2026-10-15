@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/password/**",
+                                "/api/ml/**",
                                 "/ws-notifications/**",
                                 "/ws/**",
                                 "/error"
