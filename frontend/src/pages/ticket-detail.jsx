@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, Navigate } from "react-router-dom";
 import { useTicket, useReplyTicket, useUpdateTicketStatus } from "@/lib/hooks";
 import { useAuth } from "@/context/auth-context";
+import { mlApi } from "@/lib/api";
 import { LoadingState, EmptyState } from "@/components/shared/states";
 import {
   Card,
@@ -34,6 +35,9 @@ import {
   AlertCircle,
   Package,
   ExternalLink,
+  Sparkles,
+  Bot,
+  Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -69,6 +73,74 @@ export function TicketDetailPage() {
   const updateStatus = useUpdateTicketStatus();
   const navigate = useNavigate();
   const [body, setBody] = useState("");
+  const [mlTriage, setMlTriage] = useState(null);
+  const [isClassifying, setIsClassifying] = useState(false);
+
+  // Classify ticket context with AI NLP Model
+  useEffect(() => {
+    if (!ticket) return;
+    const desc = ticket.messages?.[0]?.body || ticket.subject || "";
+    if (!desc.trim()) return;
+
+    let isMounted = true;
+    setIsClassifying(true);
+    mlApi
+      .classifyTicket({
+        subject: ticket.subject,
+        description: desc,
+      })
+      .then((res) => {
+        if (isMounted) setMlTriage(res);
+      })
+      .catch((err) => console.warn("Ticket NLP unavailable:", err))
+      .finally(() => {
+        if (isMounted) setIsClassifying(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [ticket?.id, ticket?.subject]);
+
+  const generateAiReply = (type = "auto") => {
+    const custName = ticket.customer?.split(" ")[0] || "Customer";
+    const trk = ticket.shipmentTracking ? ` for shipment ${ticket.shipmentTracking}` : "";
+
+    if (type === "expedite") {
+      setBody(
+        `Hello ${custName},\n\nThank you for reaching out${trk}. I have reviewed your shipment telemetry and escalated this directly to our dispatch operations team to expedite delivery. You will receive real-time updates as the driver approaches doorstep handover.\n\nBest regards,\n${user.name ?? user.firstName ?? "Support Agent"}`
+      );
+    } else if (type === "address") {
+      setBody(
+        `Hi ${custName},\n\nThank you for providing the delivery update. I have dispatched your updated gate passcode and address instructions${trk} directly to the driver's onboard navigation console to ensure a smooth handover.\n\nBest regards,\n${user.name ?? user.firstName ?? "Support Agent"}`
+      );
+    } else if (type === "claim") {
+      setBody(
+        `Hi ${custName},\n\nWe sincerely apologize for the inconvenience caused${trk}. Our logistics compliance team is actively reviewing the incident. We have initiated a formal inquiry with the hub operator and will provide you with a resolution and replacement/credit update shortly.\n\nBest regards,\n${user.name ?? user.firstName ?? "Support Agent"}`
+      );
+    } else {
+      // Dynamic Smart Draft based on Model 3 NLP intent
+      const intent = mlTriage?.predicted_category;
+      if (intent === "DAMAGED_PARCEL") {
+        setBody(
+          `Hi ${custName},\n\nWe are truly sorry to hear that your parcel arrived damaged. I have opened an investigation with the sorting hub inspection team and flagged this for expedited replacement/claim verification. Please retain the outer box while our operations team resolves this.\n\nBest regards,\n${user.name ?? user.firstName ?? "Support Agent"}`
+        );
+      } else if (intent === "LOST_PACKAGE") {
+        setBody(
+          `Hello ${custName},\n\nI understand your package is showing delivered but has not reached your hands. I have contacted the delivery driver to verify the GPS delivery geofence scan and will follow up with you within the hour.\n\nBest regards,\n${user.name ?? user.firstName ?? "Support Agent"}`
+        );
+      } else if (intent === "PAYMENT_BILLING") {
+        setBody(
+          `Hello ${custName},\n\nThank you for bringing this billing discrepancy to our attention. Our accounts team has verified your freight invoice and initiated the necessary adjustment. You will see the corrected statement shortly.\n\nBest regards,\n${user.name ?? user.firstName ?? "Support Agent"}`
+        );
+      } else {
+        setBody(
+          `Hello ${custName},\n\nThank you for contacting ShipTrack Support${trk}. Our logistics team is actively monitoring your consignment and ensuring prompt transit. Please let us know if you have any questions.\n\nBest regards,\n${user.name ?? user.firstName ?? "Support Agent"}`
+        );
+      }
+    }
+    toast.success("AI draft response generated!");
+  };
 
   if (isLoading) {
     return (
@@ -265,14 +337,61 @@ export function TicketDetailPage() {
 
           {ticket.status !== "closed" && (
             <Card className="mt-4">
-              <CardContent className="p-4">
+              <CardContent className="p-4 space-y-3">
+                {/* AI Copilot Reply Suggestions */}
+                <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                    <Sparkles className="h-4 w-4" />
+                    <span>AI Copilot Smart Replies:</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => generateAiReply("auto")}
+                      className="h-7 text-xs font-medium border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      <Wand2 className="h-3 w-3 mr-1" />
+                      Auto-Draft
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateAiReply("expedite")}
+                      className="h-7 text-xs font-medium hover:bg-primary/10"
+                    >
+                      ⚡ Expedite
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateAiReply("address")}
+                      className="h-7 text-xs font-medium hover:bg-primary/10"
+                    >
+                      📍 Gate/Address
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateAiReply("claim")}
+                      className="h-7 text-xs font-medium hover:bg-primary/10"
+                    >
+                      🛡️ Claim/Refund
+                    </Button>
+                  </div>
+                </div>
+
                 <Textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  placeholder="Type your reply…"
+                  placeholder="Type your reply, or click an AI Copilot Smart Reply above…"
                   className="min-h-[100px] resize-none border-0 p-0 focus-visible:ring-0"
                 />
-                <Separator className="my-3" />
+                <Separator className="my-2" />
                 <div className="flex justify-end">
                   <Button
                     onClick={handleReply}
@@ -288,6 +407,57 @@ export function TicketDetailPage() {
         </div>
 
         <div className="space-y-4">
+          {/* AI NLP Triage Card */}
+          <Card className="border border-primary/30 bg-primary/[0.02]">
+            <CardHeader className="pb-2.5">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-1.5">
+                  <Bot className="h-4 w-4 text-primary" />
+                  <span>AI Triage & Telemetry</span>
+                </CardTitle>
+                {isClassifying && (
+                  <span className="text-[10px] text-muted-foreground animate-pulse">
+                    Analyzing...
+                  </span>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Detected Intent</span>
+                <Badge variant="outline" className="font-semibold text-[11px] bg-background">
+                  {mlTriage?.predicted_category?.replace(/_/g, " ") || "CLASSIFYING..."}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Confidence</span>
+                <span className="font-medium text-foreground">
+                  {mlTriage ? `${Math.round(mlTriage.confidence * 100)}% match` : "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Customer Sentiment</span>
+                <Badge
+                  className={cn(
+                    "text-[10px] font-bold uppercase",
+                    mlTriage?.detected_sentiment === "NEGATIVE"
+                      ? "bg-rose-500 text-white"
+                      : mlTriage?.detected_sentiment === "MIXED"
+                      ? "bg-amber-500 text-white"
+                      : "bg-emerald-500 text-white"
+                  )}
+                >
+                  {mlTriage?.detected_sentiment || "NEUTRAL"}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Routing Dept</span>
+                <span className="font-medium text-[11px]">
+                  {mlTriage?.auto_assigned_department?.replace(/_/g, " ") || "CUSTOMER CARE"}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Ticket Info</CardTitle>
