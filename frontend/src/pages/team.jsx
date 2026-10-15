@@ -244,7 +244,9 @@ export function TeamPage() {
                       <TableCell className="hidden md:table-cell">
                         <Badge variant="outline" className="gap-1">
                           <ShieldCheck className="h-3 w-3" />
-                          {ROLE_LABELS[m.role]}
+                          {ROLE_LABELS[m.role] ??
+                            ROLE_LABELS[m.role?.toLowerCase()] ??
+                            m.role?.replace(/_/g, " ")?.toUpperCase()}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">

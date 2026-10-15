@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, Navigate } from "react-router-dom";
 import { useTicket, useReplyTicket, useUpdateTicketStatus } from "@/lib/hooks";
 import { useAuth } from "@/context/auth-context";
 import { LoadingState, EmptyState } from "@/components/shared/states";
@@ -56,6 +56,11 @@ const statusMeta = {
 
 export function TicketDetailPage() {
   const { id } = useParams();
+
+  if (id === "new") {
+    return <Navigate to="/app/tickets/new" replace />;
+  }
+
   const { data: ticket, isLoading } = useTicket(id);
   const { user } = useAuth();
   const reply = useReplyTicket();

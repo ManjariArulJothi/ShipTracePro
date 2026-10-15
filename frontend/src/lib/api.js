@@ -62,12 +62,17 @@ const token = sessionStorage.getItem(TOKEN_KEY);
      
       return {
         id: response.data.id,
-        name: `${response.data.firstName} ${response.data.lastName}`.trim(),
+        name: `${response.data.firstName || ""} ${response.data.lastName || ""}`.trim(),
         firstName: response.data.firstName,
         lastName: response.data.lastName,
         email: response.data.email,
-        role: response.data.role.toLowerCase(),
+        role: (response.data.role || "").toLowerCase(),
         phone: response.data.phone,
+        address: response.data.address,
+        company: response.data.companyName,
+        companyName: response.data.companyName,
+        createdAt: response.data.createdAt,
+        joinedAt: response.data.createdAt,
       };
     } catch (error) {
       console.error("authApi.me error =", error);
@@ -94,13 +99,50 @@ const token = sessionStorage.getItem(TOKEN_KEY);
     sessionStorage.removeItem("refreshToken");
   },
   async updateProfile(updates) {
-    await latency();
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) throw new Error("Not authenticated");
-    const { user, token } = JSON.parse(raw);
-    const updated = { ...user, ...updates };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: updated, token }));
-    return updated;
+    const nameParts = (updates.name || "").trim().split(" ");
+    const firstName = updates.firstName || nameParts[0] || "User";
+    const lastName = updates.lastName || nameParts.slice(1).join(" ") || " ";
+    const payload = {
+      firstName,
+      lastName,
+      phone: updates.phone || "",
+      address: updates.address || updates.location || "N/A",
+      companyName: updates.company || updates.companyName || "",
+    };
+
+    try {
+      const response = await api.put("/users/profile", payload);
+      const data = response.data;
+      const updatedUser = {
+        id: data.id,
+        name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        role: (data.role || "").toLowerCase(),
+        phone: data.phone,
+        address: payload.address,
+        company: payload.companyName,
+        companyName: payload.companyName,
+      };
+
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        sessionStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ ...parsed, user: updatedUser })
+        );
+      }
+      return updatedUser;
+    } catch {
+      const raw = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
+      if (!raw) throw new Error("Not authenticated");
+      const { user, token } = JSON.parse(raw);
+      const updated = { ...user, ...updates };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ user: updated, token }));
+      return updated;
+    }
   },
 };
 
@@ -248,20 +290,128 @@ export const notificationsApi = {
   },
 };
 
-// --- Tickets ---
+// --- Tickets Storage & API ---
+const TICKETS_KEY = "shiptrack.tickets";
+
+const INITIAL_TICKETS = [
+  {
+    id: "tkt-1",
+    reference: "TKT-4821",
+    subject: "Where is my package STP-2H7M-4410?",
+    customer: "Sam Rivera",
+    customerId: "u-customer",
+    customerEmail: "sam@example.com",
+    status: "in_progress",
+    priority: "standard",
+    channel: "chat",
+    assignee: "Support Team",
+    createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 3600000).toISOString(),
+    messages: [
+      {
+        id: "m1",
+        author: "Sam Rivera",
+        body: "Hi, my package was supposed to arrive today. Can you confirm the status?",
+        timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
+      },
+      {
+        id: "m2",
+        author: "Support Team",
+        body: "Hi Sam! Your package is currently out for delivery and should arrive by end of day.",
+        timestamp: new Date(Date.now() - 4 * 3600000).toISOString(),
+      },
+    ],
+  },
+  {
+    id: "tkt-2",
+    reference: "TKT-4822",
+    subject: "Delay on ocean freight STP-5C2P-7733",
+    customer: "Northwind Trading Co.",
+    customerId: "u-business",
+    customerEmail: "northwind@example.com",
+    status: "open",
+    priority: "express",
+    channel: "email",
+    assignee: "Support Team",
+    createdAt: new Date(Date.now() - 9 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 9 * 3600000).toISOString(),
+    messages: [
+      {
+        id: "m1",
+        author: "Priya Sharma",
+        body: "Our container was flagged as delayed. What is the revised ETA?",
+        timestamp: new Date(Date.now() - 9 * 3600000).toISOString(),
+      },
+    ],
+  },
+];
+
+function getStoredTickets() {
+  const raw = localStorage.getItem(TICKETS_KEY);
+  if (!raw) {
+    localStorage.setItem(TICKETS_KEY, JSON.stringify(INITIAL_TICKETS));
+    return INITIAL_TICKETS;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return INITIAL_TICKETS;
+  }
+}
+
+function saveStoredTickets(tickets) {
+  localStorage.setItem(TICKETS_KEY, JSON.stringify(tickets));
+}
+
 export const ticketsApi = {
   async list() {
     await latency();
-    return clone(db.tickets);
+    return clone(getStoredTickets());
   },
   async getById(id) {
     await latency();
-    return clone(db.tickets.find((t) => t.id === id || t.reference === id));
+    if (!id || id === "new") return null;
+    const tickets = getStoredTickets();
+    const ticket = tickets.find((t) => String(t.id) === String(id) || t.reference === id);
+    return ticket ? clone(ticket) : null;
+  },
+  async create(data) {
+    await latency();
+    const tickets = getStoredTickets();
+    const refNum = Math.floor(1000 + Math.random() * 9000);
+    const newId = `tkt-${Date.now()}`;
+    const newTicket = {
+      id: newId,
+      reference: `TKT-${refNum}`,
+      subject: data.subject || "Support Inquiry",
+      customer: data.customer || "Customer",
+      customerId: data.customerId ?? null,
+      customerEmail: data.customerEmail || "",
+      status: "open",
+      priority: data.priority || "standard",
+      channel: data.channel || "portal",
+      assignee: "Support Team",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messages: [
+        {
+          id: `m-${Date.now()}`,
+          author: data.customer || "Customer",
+          body: data.message || data.description || data.subject,
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    };
+    tickets.unshift(newTicket);
+    saveStoredTickets(tickets);
+    return clone(newTicket);
   },
   async reply(id, body, author) {
     await latency();
-    const ticket = db.tickets.find((t) => t.id === id);
+    const tickets = getStoredTickets();
+    const ticket = tickets.find((t) => String(t.id) === String(id) || t.reference === id);
     if (!ticket) throw new Error("Ticket not found");
+    ticket.messages = ticket.messages || [];
     ticket.messages.push({
       id: `m-${Date.now()}`,
       author,
@@ -270,14 +420,17 @@ export const ticketsApi = {
     });
     ticket.updatedAt = new Date().toISOString();
     if (ticket.status === "open") ticket.status = "in_progress";
+    saveStoredTickets(tickets);
     return clone(ticket);
   },
   async updateStatus(id, status) {
     await latency();
-    const ticket = db.tickets.find((t) => t.id === id);
+    const tickets = getStoredTickets();
+    const ticket = tickets.find((t) => String(t.id) === String(id) || t.reference === id);
     if (!ticket) throw new Error("Ticket not found");
     ticket.status = status;
     ticket.updatedAt = new Date().toISOString();
+    saveStoredTickets(tickets);
     return clone(ticket);
   },
 };

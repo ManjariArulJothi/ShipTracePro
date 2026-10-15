@@ -30,37 +30,34 @@ import {
 import { toast } from "sonner";
 
 export function ProfilePage() {
-  // =================================================
-  // const { user, updateProfile } = useAuth();
-  // const [form, setForm] = useState({
-  //   name: user.name,
-  //   email: user.email,
-  //   phone: user.phone ?? "",
-  //   company: user.company ?? "",
-  //   jobTitle: user.jobTitle ?? "",
-  //   location: user.location ?? "",
-  // });
+  const { user, updateProfile } = useAuth();
 
   const [form, setForm] = useState({
-    name: user.name ?? `${user.firstName} ${user.lastName}`,
-    email: user.email,
-    phone: user.phone ?? "",
-    company: user.company ?? user.companyName ?? "",
-    jobTitle: user.jobTitle ?? "",
-    location: user.location ?? "",
+    name: user?.name ?? `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim(),
+    email: user?.email ?? "",
+    phone: user?.phone ?? "",
+    company: user?.company ?? user?.companyName ?? "",
+    jobTitle: user?.jobTitle ?? "",
+    location: user?.location ?? user?.address ?? "",
   });
-  // =====================================================
 
-  
   const [saving, setSaving] = useState(false);
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <p className="text-muted-foreground text-sm">Loading user profile...</p>
+      </div>
+    );
+  }
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await updateProfile(form);
       toast.success("Profile updated successfully");
-    } catch {
-      toast.error("Failed to update profile");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update profile");
     } finally {
       setSaving(false);
     }
@@ -97,17 +94,17 @@ export function ProfilePage() {
             </h2>
             <p className="text-sm text-muted-foreground">{user.jobTitle}</p>
             <Badge variant="secondary" className="mt-2">
-              {ROLE_LABELS[user.role]}
+              {ROLE_LABELS[user.role?.toLowerCase()] ?? ROLE_LABELS[user.role] ?? user.role}
             </Badge>
             <Separator className="my-4" />
             <div className="w-full space-y-2.5 text-left">
               <InfoRow icon={Mail} value={user.email} />
-              <InfoRow icon={Phone} value={user.phone ?? "—"} />
-              <InfoRow icon={Building2} value={user.company ?? "—"} />
-              <InfoRow icon={MapPin} value={user.location ?? "—"} />
+              <InfoRow icon={Phone} value={user.phone || "—"} />
+              <InfoRow icon={Building2} value={user.company || user.companyName || "—"} />
+              <InfoRow icon={MapPin} value={user.location || user.address || "—"} />
               <InfoRow
                 icon={Calendar}
-                value={`Joined ${formatDate(user.joinedAt)}`}
+                value={`Joined ${formatDate(user.joinedAt || user.createdAt)}`}
               />
             </div>
           </CardContent>

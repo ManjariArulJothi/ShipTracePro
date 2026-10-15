@@ -2,6 +2,10 @@ server:
   port: 8080
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   main:
     allow-circular-references: true
   application:
@@ -27,6 +31,7 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: "0"
+    validate-on-migrate: false
 
   mail:
     host: ${SHIPTRACK_EMAIL_HOST:smtp.gmail.com}

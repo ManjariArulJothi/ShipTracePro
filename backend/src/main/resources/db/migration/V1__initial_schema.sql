@@ -76,10 +76,10 @@ INSERT INTO users (
     is_active
 )
 VALUES (
-           'manojchini545@gmail.com',
-           '$2a$10$3KM.Zfw0.NCuSCrDWBXyE.AeSFgceML613zJrGc8.8mLwnbxCTs7e',
-           'Manoj',
-           'Chini',
+           'manjari@gmail.com',
+           '$2a$10$oXOZWqB0m7KvOq2CjrL0Ge4ZDLvQYcMTQWiBNkQzizUsekARULgBa',
+           'Manjari',
+           'Admin',
            '8116959362',
            'ADMIN',
            TRUE

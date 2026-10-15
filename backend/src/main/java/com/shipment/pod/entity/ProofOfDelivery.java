@@ -62,8 +62,8 @@ public class ProofOfDelivery {
     @Column(name = "shipment_id", nullable = false, unique = true)
     private Long shipmentId;
 
-    @Column(name = "signature_data")
-    private String signatureUrl;;
+    @Column(name = "signature_data", columnDefinition = "TEXT")
+    private String signatureUrl;
 
     @Column(name = "recipient_name")
     private String recipientName;
@@ -71,7 +71,7 @@ public class ProofOfDelivery {
     @Column(name = "recipient_phone")
     private String recipientPhone;
 
-    @Column(name = "photo_url")
+    @Column(name = "photo_url", columnDefinition = "TEXT")
     private String photoUrl;
 
     @Column(name = "delivery_notes")

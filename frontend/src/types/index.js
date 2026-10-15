@@ -1,17 +1,43 @@
 export const ROLE_LABELS = {
   admin: "Administrator",
-  operator: "LOGISTIC_OPERATOR",
+  administrator: "Administrator",
+  ADMIN: "Administrator",
+
+  operator: "LOGISTICS_OPERATOR",
+  logistics_operator: "LOGISTICS_OPERATOR",
+  LOGISTICS_OPERATOR: "LOGISTICS_OPERATOR",
+
   business: "BUSINESS_CLIENT",
+  business_client: "BUSINESS_CLIENT",
+  BUSINESS_CLIENT: "BUSINESS_CLIENT",
+
   customer: "CUSTOMER",
+  CUSTOMER: "CUSTOMER",
+
   support: "SUPPORT_AGENT",
+  support_agent: "SUPPORT_AGENT",
+  SUPPORT_AGENT: "SUPPORT_AGENT",
 };
 
 export const ROLE_DESCRIPTIONS = {
   admin: "Manage platform, users, security, monitoring & audits",
+  administrator: "Manage platform, users, security, monitoring & audits",
+  ADMIN: "Manage platform, users, security, monitoring & audits",
+
   operator: "Delivery personnel responsible for shipment execution",
+  logistics_operator: "Delivery personnel responsible for shipment execution",
+  LOGISTICS_OPERATOR: "Delivery personnel responsible for shipment execution",
+
   business: "Company client that sends goods through the platform",
+  business_client: "Company client that sends goods through the platform",
+  BUSINESS_CLIENT: "Company client that sends goods through the platform",
+
   customer: "Track your packages & get real-time delivery updates",
+  CUSTOMER: "Track your packages & get real-time delivery updates",
+
   support: "Assist customers and investigate shipment issues",
+  support_agent: "Assist customers and investigate shipment issues",
+  SUPPORT_AGENT: "Assist customers and investigate shipment issues",
 };
 export const STATUS_META = {
   CREATED: {

@@ -19,6 +19,7 @@ import { ProfilePage } from "@/pages/profile";
 import { TeamPage } from "@/pages/team";
 
 import { TicketsPage } from "@/pages/tickets";
+import { CreateTicketPage } from "@/pages/create-ticket";
 import { TicketDetailPage } from "@/pages/ticket-detail";
 
 import { NotFoundPage } from "@/pages/not-found";
@@ -109,6 +110,7 @@ export default function App() {
                 <Route path="team" element={<TeamPage />} />
                
                 <Route path="tickets" element={<TicketsPage />} />
+                <Route path="tickets/new" element={<CreateTicketPage />} />
                 <Route path="tickets/:id" element={<TicketDetailPage />} />
 
                 <Route path="routes" element={<RouteManagementPage />} />

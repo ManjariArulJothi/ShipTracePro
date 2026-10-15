@@ -170,9 +170,9 @@ public class ShipmentService {
         UserProfileResponse currentUser = authClient.getCurrentUser();
 
         System.out.println("CURRENT USER ID = " + currentUser.getId());
-        System.out.println("CURRENT USER ROLE = [" + currentUser.getRole() + "]");
-        // ADMIN can see every shipment
-        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+        // ADMIN and SUPPORT_AGENT can see every shipment
+        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())
+                || "SUPPORT_AGENT".equalsIgnoreCase(currentUser.getRole())) {
             return shipmentRepository.findAllByOrderByCreatedAtDesc();
         }
 
@@ -226,8 +226,9 @@ public class ShipmentService {
                 .orElseThrow(() ->
                         new RuntimeException("Shipment not found with id: " + id));
 
-        // ADMIN can access every shipment
-        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+        // ADMIN and SUPPORT_AGENT can access every shipment
+        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())
+                || "SUPPORT_AGENT".equalsIgnoreCase(currentUser.getRole())) {
             return shipment;
         }
 

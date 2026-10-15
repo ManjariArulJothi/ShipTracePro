@@ -122,8 +122,9 @@ public ProofOfDelivery create(
         ShipmentAnalyticsDataResponse shipment =
                 shipmentClient.getShipmentForVerification(shipmentId);
 
-        // ADMIN can view any POD
-        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+        // ADMIN and SUPPORT_AGENT can view any POD
+        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())
+                || "SUPPORT_AGENT".equalsIgnoreCase(currentUser.getRole())) {
             return repository.findByShipmentId(shipmentId)
                     .orElseThrow(() ->
                             new RuntimeException("Proof of Delivery not found.")
@@ -439,8 +440,9 @@ public List<ProofOfDeliveryResponse> getAll() {
 
                 boolean allowed = false;
 
-                // Admin sees every POD
-                if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+                // Admin and Support Agent sees every POD
+                if ("ADMIN".equalsIgnoreCase(currentUser.getRole())
+                        || "SUPPORT_AGENT".equalsIgnoreCase(currentUser.getRole())) {
                     allowed = true;
                 }
 
